@@ -1,11 +1,8 @@
 from os import system, name
 from copy import deepcopy
+from colorama import Fore, Style, init
 Ships={"Carrier":5, "Battleship":4, "Cruiser":3, "Submarine":3, "Destroyer":2}
-def clear():
-    if name == 'nt':
-        _ = system('cls')
-    else:
-        _ = system('clear')
+
 class Player:
     def __init__(self,number,name):
         self.playerGrid=Grid()
@@ -28,7 +25,7 @@ class Grid:
         self.shipsCovering=17
     def printGrid(self):
         for i in self.grid:
-            print " ".join(i)
+            print colorRow(i)
     def addShip(self,spot,direction,ship):      
         if (direction.upper()=="R"):
             if (self.grid[0].index("["+str(spot[0]).upper()+"]")+Ships[ship]<10):
@@ -63,6 +60,25 @@ class Grid:
             self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[x]"
             print "Hit!"
             self.timesHit+=1
+def colorRow(row):
+    colorRowList=[]
+    for i in row:
+        if(i=="[x]"):
+            colorRowList.append(Fore.RED+i+Fore.RESET)
+        elif(i=="[+]"):
+            colorRowList.append(Fore.GREEN+i+Fore.RESET)
+        elif(i=="[0]"):
+            colorRowList.append(Fore.YELLOW+i+Fore.RESET)
+        elif(i=="[o]"):
+            colorRowList.append(Fore.BLUE+i+Fore.RESET)
+        else:
+            colorRowList.append(Fore.WHITE+i+Fore.RESET)
+    return " ".join(colorRowList)
+def clear():
+    if name == 'nt':
+        _ = system('cls')
+    else:
+        _ = system('clear')
 def shipSetUp(player):
     for ship in Ships:
         print "Ship: ",ship,"\n Length: ", Ships[ship], "\n"
@@ -87,10 +103,10 @@ def takeTurn(playerA,playerB):
     if (playerB.playerGrid.shipsCovering==playerB.playerGrid.timesHit):
         playerA.winner=True
     clear()
-def prettyPrintGrid(grid):
     for i in grid:
         print " ".join(i)
 def main():
+    init()
     player1=Player(1,raw_input("Please enter your name Player 1\n->"))
     print "Please set up your battleships"
     player1.playerGrid.printGrid()
