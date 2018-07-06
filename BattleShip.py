@@ -16,7 +16,7 @@ class Player:
         self.name=name
         self.winner=False
 class Grid:    
-    shipsCovering=17
+    
     def __init__(self):
         self.grid=[["[  ]", "[A]","[B]","[C]","[D]","[E]","[F]","[G]","[H]","[I]","[J]"]]
         for i in range(1,11):
@@ -29,6 +29,8 @@ class Grid:
             self.grid.append(row)
         self.timesHit=0
         self.shipsCovering=0
+        self.shipsCovering=17
+        self.obfuscatedGrid=[]
     def printGrid(self):
         for i in self.grid:
             print " ".join(i)
@@ -43,29 +45,30 @@ class Grid:
         else:
             if ((int(spot[1:])+Ships[ship])<10):
                 for i in range(0, Ships[ship]):
-                    self.grid[int(spot[1:])+1+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"              
+                    self.grid[int(spot[1:])+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"              
             else:
                 for i in range(0, Ships[ship]):
                     self.grid[12-Ships[ship]+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"
       
 
     def printObfuscatedGrid(self):
-        obfuscatedGrid=self.grid
-        for i in range(len(obfuscatedGrid)):
-            for x in range(len(obfuscatedGrid[i])):
-                if ((obfuscatedGrid[x][i] == "[o]") or (obfuscatedGrid[x][i] == "[+]")):
-                    obfuscatedGrid[x][i] = "[?]"
-            print " ".join(obfuscatedGrid[i])       
+        self.obfuscatedGrid=self.grid
+        for i in range(len(self.obfuscatedGrid)):
+            for x in range(len(self.obfuscatedGrid[i])):
+                if ((self.obfuscatedGrid[x][i] == "[o]") or (self.obfuscatedGrid[x][i] == "[+]")):
+                    self.obfuscatedGrid[x][i] = "[?]"
+            #print " ".join(obfuscatedGrid[i])
+        for i in self.obfuscatedGrid:
+            print " ".join(i)
                 
     def hit(self, spot):
         coordinates=self.grid[int(spot[1:])+1][self.grid[0].index("["+str(spot[0]).upper()+"]")]
         if (coordinates=="[o]"):
-            coordinates="[0]"
+            self.grid[int(spot[1:])+1][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[0]"
         if(coordinates=="[+]"):
-            coordinates=="[x]"
+            self.grid[int(spot[1:])+1][self.grid[0].index("["+str(spot[0]).upper()+"]")]=="[x]"
             self.timesHit+=1
 def shipSetUp(player):
-    
     for ship in Ships:
         print "Ship: ",ship,"\n Length: ", Ships[ship], "\n"
         spot=raw_input("Where would you like to place it?\n(*Example: B5*)\n->")
@@ -74,19 +77,19 @@ def shipSetUp(player):
         clear()
         player.playerGrid.printGrid()         
 def takeTurn(playerA,playerB):
-    
+    clear()
     print "--------- Tracking Grid ----------"
-    playerB.playerGrid.printObfuscatedGrid
+    playerB.playerGrid.printObfuscatedGrid()
     print "--------- Your Grid ----------"
-    playera.playerGrid.printGrid
-    print "Your turn ",playerA.name,"!"
+    playerA.playerGrid.printGrid()
+    print " Your turn ", playerA.name, " !"
     point = raw_input("Please input coordinates to target!\n(*Example: B5*)\n->")
     playerB.playerGrid.hit(point)
     clear()
     print "--------- Tracking Grid ----------"
-    playerB.playerGrid.printObfuscatedGrid    
+    playerB.playerGrid.printObfuscatedGrid()    
     holder=raw_input("Press any key to continue!\n->")
-    if (playerB.playerGrid.ShipsCovering==playerB.playerGrid.timesHit):
+    if (playerB.playerGrid.shipsCovering==playerB.playerGrid.timesHit):
         playerA.winner=True
     clear()
     
@@ -103,7 +106,7 @@ def main():
     print "Please set up your battleships"
     player2.playerGrid.printGrid()
     shipSetUp(player2)
-    while ((player1.winner==False)or(player2.winner==False)):
+    while ((player1.winner==False)and(player2.winner==False)):
         takeTurn(player1,player2)
         if (player1.winner ==False):
             takeTurn(player2,player1)
