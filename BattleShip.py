@@ -1,14 +1,11 @@
-
 from os import system, name
-from time import sleep
+from copy import deepcopy
 Ships={"Carrier":5, "Battleship":4, "Cruiser":3, "Submarine":3, "Destroyer":2}
-
 def clear():
     if name == 'nt':
         _ = system('cls')
     else:
         _ = system('clear')
-
 class Player:
     def __init__(self,number,name):
         self.playerGrid=Grid()
@@ -16,7 +13,6 @@ class Player:
         self.name=name
         self.winner=False
 class Grid:    
-    
     def __init__(self):
         self.grid=[["[  ]", "[A]","[B]","[C]","[D]","[E]","[F]","[G]","[H]","[I]","[J]"]]
         for i in range(1,11):
@@ -30,7 +26,6 @@ class Grid:
         self.timesHit=0
         self.shipsCovering=0
         self.shipsCovering=17
-        self.obfuscatedGrid=[]
     def printGrid(self):
         for i in self.grid:
             print " ".join(i)
@@ -49,24 +44,24 @@ class Grid:
             else:
                 for i in range(0, Ships[ship]):
                     self.grid[12-Ships[ship]+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"
-      
-
     def printObfuscatedGrid(self):
-        self.obfuscatedGrid=self.grid
-        for i in range(len(self.obfuscatedGrid)):
-            for x in range(len(self.obfuscatedGrid[i])):
-                if ((self.obfuscatedGrid[x][i] == "[o]") or (self.obfuscatedGrid[x][i] == "[+]")):
-                    self.obfuscatedGrid[x][i] = "[?]"
+        obfuscatedGrid=deepcopy(self.grid)
+        for i in range(len(obfuscatedGrid)):
+            for x in range(len(obfuscatedGrid[i])):
+                if ((obfuscatedGrid[x][i] == "[o]") or (obfuscatedGrid[x][i] == "[+]")):
+                    obfuscatedGrid[x][i] = "[?]"
             #print " ".join(obfuscatedGrid[i])
-        for i in self.obfuscatedGrid:
-            print " ".join(i)
-                
+        for i in obfuscatedGrid:
+            print " ".join(i)                  
     def hit(self, spot):
         coordinates=self.grid[int(spot[1:])+1][self.grid[0].index("["+str(spot[0]).upper()+"]")]
+        print coordinates
         if (coordinates=="[o]"):
-            self.grid[int(spot[1:])+1][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[0]"
+            self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[0]"
+            print "Miss!"
         if(coordinates=="[+]"):
-            self.grid[int(spot[1:])+1][self.grid[0].index("["+str(spot[0]).upper()+"]")]=="[x]"
+            self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[x]"
+            print "Hit!"
             self.timesHit+=1
 def shipSetUp(player):
     for ship in Ships:
@@ -82,7 +77,7 @@ def takeTurn(playerA,playerB):
     playerB.playerGrid.printObfuscatedGrid()
     print "--------- Your Grid ----------"
     playerA.playerGrid.printGrid()
-    print " Your turn ", playerA.name, " !"
+    print " Your turn ",playerA.name, " !"
     point = raw_input("Please input coordinates to target!\n(*Example: B5*)\n->")
     playerB.playerGrid.hit(point)
     clear()
@@ -92,7 +87,6 @@ def takeTurn(playerA,playerB):
     if (playerB.playerGrid.shipsCovering==playerB.playerGrid.timesHit):
         playerA.winner=True
     clear()
-    
 def prettyPrintGrid(grid):
     for i in grid:
         print " ".join(i)
