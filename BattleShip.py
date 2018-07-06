@@ -27,6 +27,7 @@ class Grid:
         for i in self.grid:
             print colorRow(i)
     def addShip(self,spot,direction,ship):      
+
         if (direction.upper()=="R"):
             if (self.grid[0].index("["+str(spot[0]).upper()+"]")+Ships[ship]<10):
                 for i in range(0,Ships[ship]):
@@ -41,6 +42,8 @@ class Grid:
             else:
                 for i in range(0, Ships[ship]):
                     self.grid[12-Ships[ship]+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"
+
+
     def printObfuscatedGrid(self):
         obfuscatedGrid=deepcopy(self.grid)
         for i in range(len(obfuscatedGrid)):
@@ -49,9 +52,9 @@ class Grid:
                     obfuscatedGrid[x][i] = "[?]"
             #print " ".join(obfuscatedGrid[i])
         for i in obfuscatedGrid:
-            print " ".join(i)                  
+            print colorRow(i)          
     def hit(self, spot):
-        coordinates=self.grid[int(spot[1:])+1][self.grid[0].index("["+str(spot[0]).upper()+"]")]
+        coordinates=self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")]
         print coordinates
         if (coordinates=="[o]"):
             self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[0]"
@@ -81,11 +84,22 @@ def clear():
         _ = system('clear')
 def shipSetUp(player):
     for ship in Ships:
-        print "Ship: ",ship,"\n Length: ", Ships[ship], "\n"
-        spot=raw_input("Where would you like to place it?\n(*Example: B5*)\n->")
-        direction=raw_input("Would you like it to go right or down(r/d)?\n->")[0]
-        player.playerGrid.addShip(spot,direction,ship)
-        clear()
+        while True:
+            try:
+                print "Ship: ",ship,"\n Length: ", Ships[ship], "\n"
+                spot=raw_input("Where would you like to place it?\n(*Example: B5*)\n->")
+                direction=raw_input("Would you like it to go right or down(r/d)?\n->")[0]
+                player.playerGrid.addShip(spot,direction,ship)
+                clear()
+                
+            except ValueError:
+                clear()
+                player.playerGrid.printGrid()
+                print "Please input a correct coordinate"
+                continue
+            else:
+                break
+        clear()        
         player.playerGrid.printGrid()         
 def takeTurn(playerA,playerB):
     clear()
@@ -93,9 +107,15 @@ def takeTurn(playerA,playerB):
     playerB.playerGrid.printObfuscatedGrid()
     print "--------- Your Grid ----------"
     playerA.playerGrid.printGrid()
-    print " Your turn ",playerA.name, " !"
-    point = raw_input("Please input coordinates to target!\n(*Example: B5*)\n->")
-    playerB.playerGrid.hit(point)
+    print " Your turn ",playerA.name
+    while True:
+        try:
+            playerB.playerGrid.hit(raw_input("Please input coordinates to target!\n(*Example: B5*)\n->"))
+        except ValueError:
+            print "Please pick a valid point!"
+            continue
+        else:
+            break
     clear()
     print "--------- Tracking Grid ----------"
     playerB.playerGrid.printObfuscatedGrid()    
@@ -103,8 +123,8 @@ def takeTurn(playerA,playerB):
     if (playerB.playerGrid.shipsCovering==playerB.playerGrid.timesHit):
         playerA.winner=True
     clear()
-    for i in grid:
-        print " ".join(i)
+    #for i in grid:
+     #   print " ".join(i)
 def main():
     init()
     player1=Player(1,raw_input("Please enter your name Player 1\n->"))
