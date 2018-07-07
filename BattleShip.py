@@ -144,14 +144,16 @@ def takeTurn(playerA,playerB):
     print "--------- Tracking Grid ----------"
     playerB.playerGrid.printObfuscatedGrid()    
     holder=raw_input("Press any key to continue!\n->")
+    clear()
     if (playerB.playerGrid.shipsCovering==playerB.playerGrid.timesHit):
         playerA.winner=True
     else:
-        holder=raw_input("Press any key to reveal you grid ",playerB.name,"!")
+        holder=raw_input("Press any key to reveal you grid "+str(playerB.name)+"!")
     clear()
 
 def main():
-    init()
+    if name == 'nt':
+        init()
     player1=Player(1,raw_input("Please enter your name Player 1\n->"))
     print "Please set up your battleships"
     player1.playerGrid.printGrid()
@@ -162,7 +164,7 @@ def main():
     player2.playerGrid.printGrid()
     shipSetUp(player2)
     clear()
-    holder=raw_input("Please press any key to continue,"+player1.name+". Your move is first!\n->")
+    holder=raw_input("Please press any key to continue\n,"+str(player1.name)+".\n Your move is first!\n->")
     while ((player1.winner==False)and(player2.winner==False)):
         takeTurn(player1,player2)
         if (player1.winner ==False):
