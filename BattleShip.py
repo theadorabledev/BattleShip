@@ -2,7 +2,8 @@ from os import system, name
 from copy import deepcopy
 from colorama import Fore, Style, init
 Ships={"Carrier":5, "Battleship":4, "Cruiser":3, "Submarine":3, "Destroyer":2}
-
+class isIntersectionError(Exception):
+    pass
 class Player:
     def __init__(self,number,name):
         self.playerGrid=Grid()
@@ -27,7 +28,6 @@ class Grid:
         for i in self.grid:
             print colorRow(i)
     def addShip(self,spot,direction,ship):      
-
         if (direction.upper()=="R"):
             if (self.grid[0].index("["+str(spot[0]).upper()+"]")+Ships[ship]<10):
                 for i in range(0,Ships[ship]):
@@ -63,6 +63,16 @@ class Grid:
             self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[x]"
             print "Hit!"
             self.timesHit+=1
+def isIntersection(ship, spot, player,direction):
+    intersection=False
+    for i in range(Ships[ship]):
+        if direction=="r":
+            if player.playerGrid.grid[int(spot[1:])][player.playerGrid.grid[0].index("["+str(spot[0]).upper()+"]")+i]=="[+]":
+                intersection=True   
+        else:
+            if player.playerGrid.grid[int(spot[1:])+i][player.playerGrid.grid[0].index("["+str(spot[0]).upper()+"]")]=="[+]":
+                intersection=True
+    return intersection
 def colorRow(row):
     colorRowList=[]
     for i in row:
@@ -84,12 +94,15 @@ def clear():
         _ = system('clear')
 def shipSetUp(player):
     for ship in Ships:
+        spot=""
+        direction=""
         while True:
             try:
                 print "Ship: ",ship,"\n Length: ", Ships[ship], "\n"
                 spot=raw_input("Where would you like to place it?\n(*Example: B5*)\n->")
                 direction=raw_input("Would you like it to go right or down(r/d)?\n->")[0]
-                player.playerGrid.addShip(spot,direction,ship)
+                if isIntersection(ship, spot, player,direction):
+                    raise isIntersectionError
                 clear()
                 
             except ValueError:
@@ -97,9 +110,15 @@ def shipSetUp(player):
                 player.playerGrid.printGrid()
                 print "Please input a correct coordinate"
                 continue
+            except isIntersectionError:
+                clear()
+                player.playerGrid.printGrid()
+                print "Please don't overlap ships"
+                continue                
             else:
                 break
-        clear()        
+        clear() 
+        player.playerGrid.addShip(spot,direction,ship)
         player.playerGrid.printGrid()         
 def takeTurn(playerA,playerB):
     clear()
@@ -123,8 +142,7 @@ def takeTurn(playerA,playerB):
     if (playerB.playerGrid.shipsCovering==playerB.playerGrid.timesHit):
         playerA.winner=True
     clear()
-    #for i in grid:
-     #   print " ".join(i)
+
 def main():
     init()
     player1=Player(1,raw_input("Please enter your name Player 1\n->"))
@@ -141,9 +159,9 @@ def main():
         if (player1.winner ==False):
             takeTurn(player2,player1)
     if (player1.winner==True):
-        print "Congratulations ",player1.name,"! You win!"
+        print "Congratulations ",player1.name,"!\n You win!"
     else:
-        print "Congratulations ",player2.name,"! You win!"
+        print "Congratulations ",player2.name,"!\n You win!"
     endGame=raw_input("Please press any key to end game!\n->")
     clear()
 main()
