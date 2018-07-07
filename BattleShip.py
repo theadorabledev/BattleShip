@@ -41,7 +41,7 @@ class Grid:
                     self.grid[int(spot[1:])+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"              
             else:
                 for i in range(0, Ships[ship]):
-                    self.grid[12-Ships[ship]+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"
+                    self.grid[11-Ships[ship]+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"
 
 
     def printObfuscatedGrid(self):
@@ -66,12 +66,15 @@ class Grid:
 def isIntersection(ship, spot, player,direction):
     intersection=False
     for i in range(Ships[ship]):
-        if direction=="r":
-            if player.playerGrid.grid[int(spot[1:])][player.playerGrid.grid[0].index("["+str(spot[0]).upper()+"]")+i]=="[+]":
-                intersection=True   
-        else:
-            if player.playerGrid.grid[int(spot[1:])+i][player.playerGrid.grid[0].index("["+str(spot[0]).upper()+"]")]=="[+]":
-                intersection=True
+        try:
+            if direction=="r":
+                if player.playerGrid.grid[int(spot[1:])][player.playerGrid.grid[0].index("["+str(spot[0]).upper()+"]")+i]=="[+]":
+                    intersection=True   
+            else:
+                if player.playerGrid.grid[int(spot[1:])+i][player.playerGrid.grid[0].index("["+str(spot[0]).upper()+"]")]=="[+]":
+                    intersection=True
+        except IndexError:
+            intersection= False
     return intersection
 def colorRow(row):
     colorRowList=[]
@@ -84,6 +87,8 @@ def colorRow(row):
             colorRowList.append(Fore.YELLOW+i+Fore.RESET)
         elif(i=="[o]"):
             colorRowList.append(Fore.BLUE+i+Fore.RESET)
+        elif(i=="[?]"):
+            colorRowList.append(Fore.CYAN+i+Fore.RESET)
         else:
             colorRowList.append(Fore.WHITE+i+Fore.RESET)
     return " ".join(colorRowList)
@@ -119,7 +124,7 @@ def shipSetUp(player):
                 break
         clear() 
         player.playerGrid.addShip(spot,direction,ship)
-        player.playerGrid.printGrid()         
+        player.playerGrid.printGrid() 
 def takeTurn(playerA,playerB):
     clear()
     print "--------- Tracking Grid ----------"
@@ -141,6 +146,8 @@ def takeTurn(playerA,playerB):
     holder=raw_input("Press any key to continue!\n->")
     if (playerB.playerGrid.shipsCovering==playerB.playerGrid.timesHit):
         playerA.winner=True
+    else:
+        holder=raw_input("Press any key to reveal you grid ",playerB.name,"!")
     clear()
 
 def main():
@@ -154,6 +161,8 @@ def main():
     print "Please set up your battleships"
     player2.playerGrid.printGrid()
     shipSetUp(player2)
+    clear()
+    holder=raw_input("Please press any key to continue,"+player1.name+". Your move is first!\n->")
     while ((player1.winner==False)and(player2.winner==False)):
         takeTurn(player1,player2)
         if (player1.winner ==False):
