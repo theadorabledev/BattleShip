@@ -1,7 +1,15 @@
 from os import system, name
 from copy import deepcopy
 from colorama import Fore, Style, init
-Ships={"Carrier":5, "Battleship":4, "Cruiser":3, "Submarine":3, "Destroyer":2}
+#Ships={"Carrier":5, "Battleship":4, "Cruiser":3, "Submarine":3, "Destroyer":2}
+#Ship class and Ships dictionary for each player
+class Ship:
+    def __init__(self,name,length):
+        self.name=name
+        self.length=length
+        self.spotsOccupied=[]
+    def updateSpotsOccupied(self,spot):
+        self.spotsOccupied.append(spot)
 class isIntersectionError(Exception):
     pass
 class Player:
@@ -10,6 +18,7 @@ class Player:
         self.number=number
         self.name=name
         self.winner=False
+
 class Grid:    
     def __init__(self):
         self.grid=[["[  ]", "[A]","[B]","[C]","[D]","[E]","[F]","[G]","[H]","[I]","[J]"]]
@@ -22,26 +31,32 @@ class Grid:
                 row.append( "[o]" )
             self.grid.append(row)
         self.timesHit=0
-        self.shipsCovering=0
+#        self.shipsCovering=0
         self.shipsCovering=17
+        self.Ships={"Carrier":Ship("Carrier",5), "Battleship":Ship("Battleship",4), "Cruiser":Ship("Cruiser",3), "Submarine":Ship("Submarine",3), "Destroyer":Ship("Destroyer",2)}
     def printGrid(self):
         for i in self.grid:
             print colorRow(i)
     def addShip(self,spot,direction,ship):      
         if (direction.upper()=="R"):
-            if (self.grid[0].index("["+str(spot[0]).upper()+"]")+Ships[ship]<10):
-                for i in range(0,Ships[ship]):
+            if (self.grid[0].index("["+str(spot[0]).upper()+"]")+self.Ships[ship].length<10):
+                for i in range(0,self.Ships[ship].length):
                     self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")+i]="[+]"
+                    self.Ships[ship].updateSpotsOccupied(str(self.grid[0][self.grid[0].index("["+str(spot[0]).upper()+"]")+i][1]+spot[1:])[:-1])
             else:
-                for i in range(0,Ships[ship]):
-                    self.grid[int(spot[1:])][11-Ships[ship]+i]="[+]"
+                for i in range(0,self.Ships[ship].length):
+                    self.grid[int(spot[1:])][11-self.Ships[ship].length+i]="[+]"
+                    self.Ships[ship].updateSpotsOccupied(str(self.grid[0][11-self.Ships[ship].length+i][1]+spot[1:])[:-1])
         else:
-            if ((int(spot[1:])+Ships[ship])<10):
-                for i in range(0, Ships[ship]):
-                    self.grid[int(spot[1:])+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"              
+            if ((int(spot[1:])+self.Ships[ship].length)<10):
+                for i in range(0, self.Ships[ship].length):
+                    self.grid[int(spot[1:])+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"   
+                    self.Ships[ship].updateSpotsOccupied(str(spot[0]).upper()+str(int(spot[1:])+i))
             else:
-                for i in range(0, Ships[ship]):
-                    self.grid[11-Ships[ship]+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"
+                for i in range(0, self.Ships[ship].length):
+                    self.grid[11-self.Ships[ship].length+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"
+                    self.Ships[ship].updateSpotsOccupied(str(spot[0]).upper()+str(11-self.Ships[ship].length+i))
+        #self.Ships[ship].updateSpotsOccupied(spot)
 
 
     def printObfuscatedGrid(self):
@@ -54,18 +69,28 @@ class Grid:
         for i in obfuscatedGrid:
             print colorRow(i)          
     def hit(self, spot):
-        coordinates=self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")]
+        coordinates=self.getCoordinateSign(spot)
         print coordinates
         if (coordinates=="[o]"):
-            self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[0]"
-            print "Miss!"
+            self.changeCoordinateSign(spot,"[0]")
         if(coordinates=="[+]"):
-            self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[x]"
-            print "Hit!"
+            self.changeCoordinateSign(spot,"[x]")
             self.timesHit+=1
+    def youSunkMyBattleShip(self):
+        for ship in self.Ships:
+            sunk=True
+            for spot in self.Ships[ship].spotsOccupied:
+                if self.getCoordinateSign(spot)=="[+]":
+                    sunk=False
+            if sunk:
+                return True               
+    def getCoordinateSign(self,spot):
+        return self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")]
+    def changeCoordinateSign(self,spot,sign):
+        self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")] = sign
 def isIntersection(ship, spot, player,direction):
     intersection=False
-    for i in range(Ships[ship]):
+    for i in range(player.playerGrid.Ships[ship].length):
         try:
             if direction=="r":
                 if player.playerGrid.grid[int(spot[1:])][player.playerGrid.grid[0].index("["+str(spot[0]).upper()+"]")+i]=="[+]":
@@ -98,12 +123,12 @@ def clear():
     else:
         _ = system('clear')
 def shipSetUp(player):
-    for ship in Ships:
+    for ship in player.playerGrid.Ships:
         spot=""
         direction=""
         while True:
             try:
-                print "Ship: ",ship,"\n Length: ", Ships[ship], "\n"
+                print "Ship: ",ship,"\n Length: ", player.playerGrid.Ships[ship].length, "\n"
                 spot=raw_input("Where would you like to place it?\n(*Example: B5*)\n->")
                 direction=raw_input("Would you like it to go right or down(r/d)?\n->")[0]
                 if isIntersection(ship, spot, player,direction):
@@ -125,6 +150,7 @@ def shipSetUp(player):
         clear() 
         player.playerGrid.addShip(spot,direction,ship)
         player.playerGrid.printGrid() 
+        print player.playerGrid.Ships[ship].spotsOccupied
 def takeTurn(playerA,playerB):
     clear()
     print "--------- Tracking Grid ----------"
@@ -143,6 +169,8 @@ def takeTurn(playerA,playerB):
     clear()
     print "--------- Tracking Grid ----------"
     playerB.playerGrid.printObfuscatedGrid()    
+    if playerB.playerGrid.youSunkMyBattleShip():
+        print "You sunk my BattleShip!"
     holder=raw_input("Press any key to continue!\n->")
     clear()
     if (playerB.playerGrid.shipsCovering==playerB.playerGrid.timesHit):
