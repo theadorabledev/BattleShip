@@ -31,7 +31,6 @@ class Grid:
                 row.append( "[o]" )
             self.grid.append(row)
         self.timesHit=0
-#        self.shipsCovering=0
         self.shipsCovering=17
         self.Ships={"Carrier":Ship("Carrier",5), "Battleship":Ship("Battleship",4), "Cruiser":Ship("Cruiser",3), "Submarine":Ship("Submarine",3), "Destroyer":Ship("Destroyer",2)}
     def printGrid(self):
@@ -41,22 +40,23 @@ class Grid:
         if (direction.upper()=="R"):
             if (self.grid[0].index("["+str(spot[0]).upper()+"]")+self.Ships[ship].length<10):
                 for i in range(0,self.Ships[ship].length):
-                    self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")+i]="[+]"
+                    self.changeCoordinateSign(self.incrementCoordinate(spot,direction,i),"[+]")
                     self.Ships[ship].updateSpotsOccupied(str(self.grid[0][self.grid[0].index("["+str(spot[0]).upper()+"]")+i][1]+spot[1:])[:-1])
             else:
                 for i in range(0,self.Ships[ship].length):
-                    self.grid[int(spot[1:])][11-self.Ships[ship].length+i]="[+]"
+                    self.changeCoordinateSign(self.incrementCoordinate((" ABCDEFGHIJ"[11-self.Ships[ship].length]+spot[1:]),direction,i),"[+]")
+                    
                     self.Ships[ship].updateSpotsOccupied(str(self.grid[0][11-self.Ships[ship].length+i][1]+spot[1:])[:-1])
         else:
             if ((int(spot[1:])+self.Ships[ship].length)<10):
                 for i in range(0, self.Ships[ship].length):
-                    self.grid[int(spot[1:])+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"   
+                    self.changeCoordinateSign(self.incrementCoordinate(spot,direction,i),"[+]")
                     self.Ships[ship].updateSpotsOccupied(str(spot[0]).upper()+str(int(spot[1:])+i))
             else:
                 for i in range(0, self.Ships[ship].length):
-                    self.grid[11-self.Ships[ship].length+i][self.grid[0].index("["+str(spot[0]).upper()+"]")]="[+]"
+                    self.changeCoordinateSign(self.incrementCoordinate(str(spot[0]).upper()+str(int(11-self.Ships[ship].length)),direction,i),"[+]")                    
                     self.Ships[ship].updateSpotsOccupied(str(spot[0]).upper()+str(11-self.Ships[ship].length+i))
-        #self.Ships[ship].updateSpotsOccupied(spot)
+
 
 
     def printObfuscatedGrid(self):
@@ -88,6 +88,12 @@ class Grid:
         return self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")]
     def changeCoordinateSign(self,spot,sign):
         self.grid[int(spot[1:])][self.grid[0].index("["+str(spot[0]).upper()+"]")] = sign
+    def incrementCoordinate(self,spot,direction,increment):
+        alphabet=" ABCDEFGHIJ"
+        if direction.upper()=="R":
+            return alphabet[alphabet.index(spot[0].upper())+increment]+spot[1:]
+        else:
+            return spot[0]+str(int(spot[1:])+increment)
 def isIntersection(ship, spot, player,direction):
     intersection=False
     for i in range(player.playerGrid.Ships[ship].length):
